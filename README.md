@@ -5,6 +5,9 @@ AsyncHttpClient.
 
 The rest of the code is left untouched other that the test that exercised the KissMetricClient.
 
+NOTE ON UNIT TESTS: I found out that GAE required a web app to make the URL call.  I had updated the unit
+test however some fail because of this limitation in GAE.  At this time, I can't get around this.
+
 Tony
   
 =============================================
