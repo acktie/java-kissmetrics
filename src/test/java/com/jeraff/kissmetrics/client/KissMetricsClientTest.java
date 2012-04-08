@@ -18,7 +18,7 @@ public class KissMetricsClientTest {
 
     @BeforeClass
     public static void setupClient() {
-    	helper = new LocalServiceTestHelper(new LocalURLFetchServiceTestConfig()); com.google.appengine.api.urlfetch.dev.LocalURLFetchService
+    	helper = new LocalServiceTestHelper(new LocalURLFetchServiceTestConfig());
         client = new KissMetricsClient(System.getProperty("KISS_API"), "arinTesting");
     }
 
