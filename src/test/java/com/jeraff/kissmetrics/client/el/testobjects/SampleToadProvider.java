@@ -1,5 +1,7 @@
 package com.jeraff.kissmetrics.client.el.testobjects;
 
+import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
+import com.google.appengine.tools.development.testing.LocalURLFetchServiceTestConfig;
 import com.jeraff.kissmetrics.client.KissMetricsClient;
 import com.jeraff.kissmetrics.client.KissMetricsProperties;
 import com.jeraff.kissmetrics.client.el.JeraffELResolver;
@@ -9,12 +11,13 @@ import com.jeraff.kissmetrics.toad.aop.Alias;
 import com.jeraff.kissmetrics.toad.aop.Kissmetrics;
 import com.jeraff.kissmetrics.toad.aop.Record;
 import com.jeraff.kissmetrics.toad.aop.Set;
-import com.ning.http.client.AsyncHttpClient;
 
 import javax.el.ExpressionFactory;
+
 import java.util.HashMap;
 
 public class SampleToadProvider implements ToadProvider {
+	private static LocalServiceTestHelper helper; 
     private Toad toad;
     private String testString = "testing 1 2";
     private KissMetricsProperties props = new KissMetricsProperties();
@@ -26,8 +29,9 @@ public class SampleToadProvider implements ToadProvider {
     @Override
     public Toad getToad() {
         if (toad == null) {
-            AsyncHttpClient httpClient = new AsyncHttpClient();
-            KissMetricsClient client = new KissMetricsClient(System.getProperty("KISS_API"), "arinTesting", httpClient, false);
+        	helper = new LocalServiceTestHelper(new LocalURLFetchServiceTestConfig());
+        	helper.setUp();
+            KissMetricsClient client = new KissMetricsClient(System.getProperty("KISS_API"), "arinTesting");
             toad = new Toad(client);
 
             ClassLoader cl = JeraffELResolver.class.getClassLoader();
@@ -40,7 +44,7 @@ public class SampleToadProvider implements ToadProvider {
 
         return toad;
     }
-
+    
     @Override
     public String getDefaultKissClientId() {
         return "ryan";

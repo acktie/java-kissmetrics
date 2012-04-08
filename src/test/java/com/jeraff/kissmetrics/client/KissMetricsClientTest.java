@@ -1,17 +1,35 @@
 package com.jeraff.kissmetrics.client;
 
-import com.ning.http.client.AsyncHttpClient;
 import junit.framework.Assert;
+
+import org.junit.After;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
+import com.google.appengine.tools.development.testing.LocalURLFetchServiceTestConfig;
+
 public class KissMetricsClientTest {
     private static KissMetricsClient client;
+    private static LocalServiceTestHelper helper; 
+
+    
 
     @BeforeClass
     public static void setupClient() {
-        AsyncHttpClient httpClient = new AsyncHttpClient();
-        client = new KissMetricsClient(System.getProperty("KISS_API"), "arinTesting", httpClient, false);
+    	helper = new LocalServiceTestHelper(new LocalURLFetchServiceTestConfig()); com.google.appengine.api.urlfetch.dev.LocalURLFetchService
+        client = new KissMetricsClient(System.getProperty("KISS_API"), "arinTesting");
+    }
+
+    @Before
+    public void setUp() {
+        helper.setUp();
+    }
+
+    @After
+    public void tearDown() {
+        helper.tearDown();
     }
 
     @Test

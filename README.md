@@ -1,3 +1,14 @@
+Continuing on the work Ryan did, I have modified the KissMetricsClient to work with Google App Engine (GAE).  
+GAE does not allow for the creation of Thread in it's environment hence the AsyncttpClient did not work.
+However, I modified the KissMetricClient to use the Google App Engine fetchUrl class and substituted the
+AsyncHttpClient.
+
+The rest of the code is left untouched other that the test that exercised the KissMetricClient.
+
+Tony
+  
+=============================================
+
 # work in progress
 
 this is the start of a basic java client for kiss metrics...

@@ -1,9 +1,13 @@
 package com.jeraff.kissmetrics.toad;
 
+import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
+import com.google.appengine.tools.development.testing.LocalURLFetchServiceTestConfig;
 import com.jeraff.kissmetrics.client.KissMetricsClient;
 import com.jeraff.kissmetrics.client.KissMetricsProperties;
-import com.ning.http.client.AsyncHttpClient;
 import junit.framework.Assert;
+
+import org.junit.After;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -15,14 +19,25 @@ import org.junit.Test;
  */
 public class ToadTest {
     private static Toad toad;
+    private static LocalServiceTestHelper helper; 
 
     @BeforeClass
     public static void setupToadTest() {
-        AsyncHttpClient httpClient = new AsyncHttpClient();
-        KissMetricsClient client = new KissMetricsClient(System.getProperty("KISS_API"), "arinTesting", httpClient, false);
+    	helper = new LocalServiceTestHelper(new LocalURLFetchServiceTestConfig());
+        KissMetricsClient client = new KissMetricsClient(System.getProperty("KISS_API"), "arinTesting");
         toad = new Toad(client);
     }
 
+    @Before
+    public void setUp() {
+        helper.setUp();
+    }
+
+    @After
+    public void tearDown() {
+        helper.tearDown();
+    }
+    
     @Test
     public void testAlias() {
         toad.user("ryan").alias("ryan@toodo.com").alias("jdsf;klsdfhhsf899yyy988");

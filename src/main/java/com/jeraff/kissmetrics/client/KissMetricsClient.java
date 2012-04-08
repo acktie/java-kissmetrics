@@ -1,21 +1,26 @@
 package com.jeraff.kissmetrics.client;
 
-import com.ning.http.client.AsyncHttpClient;
-import com.ning.http.client.FluentCaseInsensitiveStringsMap;
-import com.ning.http.client.Response;
+import static com.google.appengine.api.urlfetch.FetchOptions.Builder.*;
+import com.google.appengine.api.urlfetch.FetchOptions;
+import com.google.appengine.api.urlfetch.HTTPHeader;
+import com.google.appengine.api.urlfetch.HTTPMethod;
+import com.google.appengine.api.urlfetch.HTTPRequest;
+import com.google.appengine.api.urlfetch.HTTPResponse;
+import com.google.appengine.api.urlfetch.URLFetchService;
+import com.google.appengine.api.urlfetch.URLFetchServiceFactory;
 
-import java.util.Collection;
+import java.net.URL;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Future;
 
 public class KissMetricsClient {
     private String apiKey;
     private String id;
-    private AsyncHttpClient httpClient;
+    private static URLFetchService urlFetch = URLFetchServiceFactory.getURLFetchService();
     private boolean secure;
     private boolean useClientTimestamp;
-    private Future<Response> lastResponse;
+    private Future<HTTPResponse> lastResponse;
+    private FetchOptions fetchOptions;
 
     public static final String API_HOST = "trk.kissmetrics.com";
 
@@ -26,7 +31,7 @@ public class KissMetricsClient {
     public static final String PROP_TIMESTAMP = "_t";
     public static final String PROP_USE_CLIENT_TIME = "_d";
 
-    private static final String SCHEME_HTTS = "https";
+    private static final String SCHEME_HTTPS = "https";
     private static final String SCHEME_HTTP = "http";
 
     public static final String URL_FORMAT = "%s://%s%s?%s";
@@ -37,20 +42,15 @@ public class KissMetricsClient {
     public KissMetricsClient(String apiKey, String id) {
         this.apiKey = apiKey;
         this.id = id;
+        this.fetchOptions = withDeadline(30.0);
     }
 
     public KissMetricsClient(
-            String apiKey, String id, AsyncHttpClient httpClient, boolean secure) {
+            String apiKey, String id, FetchOptions fetchOptions, boolean secure) {
         this.apiKey = apiKey;
         this.id = id;
-        this.httpClient = httpClient;
+        this.fetchOptions = fetchOptions;
         this.secure = secure;
-    }
-
-    public KissMetricsClient(String apiKey, String id, AsyncHttpClient httpClient) {
-        this.apiKey = apiKey;
-        this.id = id;
-        this.httpClient = httpClient;
     }
 
     //////////////////////////////////////////////////////////////////////
@@ -85,18 +85,18 @@ public class KissMetricsClient {
     //////////////////////////////////////////////////////////////////////
     public KissMetricsResponse getResponse() throws KissMetricsException {
         final KissMetricsResponse kissMetricsResponse = new KissMetricsResponse();
-        final Response response;
+        final HTTPResponse response;
 
         try {
             response = lastResponse.get();
-            kissMetricsResponse.setStatus(response.getStatusCode());
+            kissMetricsResponse.setStatus(response.getResponseCode());
         } catch (Exception e) {
             throw new KissMetricsException("couldn't get response", e);
         }
 
-        final FluentCaseInsensitiveStringsMap headers = response.getHeaders();
-        for (Map.Entry<String, List<String>> header : headers) {
-            kissMetricsResponse.addHeader(header.getKey(), header.getValue().get(0));
+        final List<HTTPHeader> headers = response.getHeaders();
+        for (HTTPHeader header : headers) {
+            kissMetricsResponse.addHeader(header.getName(), header.getValue());
         }
 
         return kissMetricsResponse;
@@ -120,12 +120,10 @@ public class KissMetricsClient {
         }
 
         final String url = constructUrl(endpoint, properties);
-        if (httpClient == null) {
-            httpClient = new AsyncHttpClient();
-        }
 
         try {
-            lastResponse = httpClient.prepareGet(url).execute();
+        	HTTPRequest request = new HTTPRequest(new URL(url), HTTPMethod.GET);
+            lastResponse = urlFetch.fetchAsync(request);
         } catch (Exception e) {
             throw new KissMetricsException("error: " + url, e);
         }
@@ -134,7 +132,7 @@ public class KissMetricsClient {
     public String constructUrl(ApiEndpoint endpoint, KissMetricsProperties properties)
             throws KissMetricsException {
         final String scheme = secure
-                ? SCHEME_HTTS
+                ? SCHEME_HTTPS
                 : SCHEME_HTTP;
 
         try {
@@ -184,13 +182,5 @@ public class KissMetricsClient {
 
     public void setUseClientTimestamp(boolean useClientTimestamp) {
         this.useClientTimestamp = useClientTimestamp;
-    }
-
-    public AsyncHttpClient getHttpClient() {
-        return httpClient;
-    }
-
-    public void setHttpClient(AsyncHttpClient httpClient) {
-        this.httpClient = httpClient;
     }
 }
